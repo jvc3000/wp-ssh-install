@@ -5,7 +5,7 @@ echo "============================================"
 
 # Install Apache2 web server
 echo "Install Apache2 web server"
-apt install apache2 \
+apt install apache2 -y \
             ghostscript \
             libapache2-mod-php
 
@@ -15,7 +15,7 @@ apt install mysql-server -y
 
 # Install php & modules
 echo "Install php & modules"
-apt install php \
+apt install php -y \
             php-bcmath \
             php-curl \
             php-imagick \

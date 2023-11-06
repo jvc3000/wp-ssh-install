@@ -20,9 +20,12 @@ done
 echo "Show all databases (before)"
 mysql --defaults-extra-file=config.cnf -e "SHOW DATABASES;"
 
+echo -e "\nShow users"
+mysql --defaults-extra-file=config.cnf -e "SELECT DISTINCT user FROM mysql.user;"
+
 mysql --defaults-extra-file=config.cnf -e "CREATE DATABASE $dbname;"
 mysql --defaults-extra-file=config.cnf -e "CREATE USER $dbuser@localhost IDENTIFIED BY '$dbuserpass';"
-mysql --defaults-extra-file=config.cnf -e "GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER ON carolinatechio.* TO carolinatechio@localhost;"
+mysql --defaults-extra-file=config.cnf -e "GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER ON $dbname.* TO $dbuser@localhost;"
 mysql --defaults-extra-file=config.cnf -e "FLUSH PRIVILEGES;"
 
 echo -e "\nShow all databases (after)"

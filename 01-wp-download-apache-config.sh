@@ -66,10 +66,11 @@ echo "Reload to apply changes"
 service apache2 reload
 
 # Validate web server is responding
-if curl -I "http://localhost" 2>&1 | grep -w "200\|301" ; then
-    echo "Success! localhost is up! :)"
+VALID_RESPONSE="setup-config.php"
+if curl -I "http://localhost" 2>&1 | grep -w "$VALID_RESPONSE" ; then
+    echo "Success! Wordpress install is validated. localhost is up. :)"
 else
-    echo "WARNING: localhost is down :("
+    echo "WARNING: No valid http response for WordPress setup. localhost is down :("
 fi
 
 echo -e "\nSuccess?"

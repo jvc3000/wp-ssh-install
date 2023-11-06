@@ -30,6 +30,7 @@ echo "Success :)"
 
 RED='\033[0;31m'
 BLUE='\033[0;34m'
+GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 # You can use these ANSI escape codes:
@@ -42,9 +43,9 @@ NC='\033[0m' # No Color
 # Cyan         0;36     Light Cyan    1;36
 # Light Gray   0;37     White         1;37
 
-echo -e "${RED}###############################################${NC}"
-echo -e "         Configuration Information"
+echo -e "${RED}#############################################${NC}"
+echo -e "      ${GREEN}Configuration Information${NC}"
 echo -e "Database: ${BLUE}$DB_NAME${NC}"
 echo -e "User:     ${BLUE}$DB_USER${NC}"
 echo -e "Password: ${BLUE}$DB_PASS${NC}"
-echo -e "${RED}###############################################${NC}"
+echo -e "${RED}#############################################${NC}"

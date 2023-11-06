@@ -44,7 +44,7 @@ NC='\033[0m' # No Color
 
 echo -e "${RED}###############################################${NC}"
 echo -e "         Configuration Information"
-echo -e "   Database name: ${BLUE}$DB_NAME${NC}"
-echo -e "     DB username: ${BLUE}$DB_USER${NC}"
-echo -e "DB user passowrd: ${BLUE}$DB_PASS${NC}"
+echo -e "Database: ${BLUE}$DB_NAME${NC}"
+echo -e "User:     ${BLUE}$DB_USER${NC}"
+echo -e "Password: ${BLUE}$DB_PASS${NC}"
 echo -e "${RED}###############################################${NC}"

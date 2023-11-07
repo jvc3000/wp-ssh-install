@@ -175,3 +175,11 @@ perl -i -pe'
 #create uploads folder and set permissions
 mkdir /srv/www/carolinatech.org/wp-content/uploads
 chmod 775 /srv/www/carolinatech.org/wp-content/uploads
+
+# Install SSL Cert
+echo "SSL generate with certbot"
+apt install certbot python3-certbot-apache -y
+certbot run -n --apache --agree-tos -d $WEBSITE_DOMAIN,www.$WEBSITE_DOMAIN -m admin@$WEBSITE_DOMAIN  --redirect
+echo "========================="
+echo "Installation is complete."
+echo "=========================" 

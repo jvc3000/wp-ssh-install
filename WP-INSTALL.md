@@ -20,14 +20,15 @@ ssh-keygen -f "/home/vcampbell3/.ssh/known_hosts" -R "carolinatech.org"
 Server will be built from the GCP admin console using a pre defined Instance Template. Then need to QA, install latest updates, and reboot server.
 1. **VM Build -** Create new Ubuntu 22.04.3 LTS virtual machine from GCP Compute Engine Instance template. Be sure to map Reserved External IP in build template.
 2. **Route DNS -** Update DNS to new build's External IP **OR** map VM to a Reserved Static External IP (used by the old VM).
-3. **Updates -** Check for and apply any updates, then reboot.
+3. **Updates -** DO NOT SKIP - Check for and apply any updates, then reboot.
 ```
 sudo apt update && sudo apt upgrade -y
 sudo reboot now
 ```
-4. Stage script and config file  
-scp 00-wordpress-install.sh vcampbell3@carolinatech.org:00-wordpress-install.sh  
-
+4. **Scripts -** Stage script and config file  
+```
+scp 00-wordpress-install.sh config.cnf vcampbell3@carolinatech.org:
+```
 
 ### Application Install Outline
 High level steps to install and configure WordPress in a new server.

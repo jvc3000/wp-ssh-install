@@ -54,9 +54,6 @@ curl https://wordpress.org/latest.tar.gz | sudo -u www-data tar zx -C /srv/www
 echo "Change installation defaul directory 'wordpress' to '$WEBSITE_DOMAIN'"
 mv /srv/www/wordpress /srv/www/$WEBSITE_DOMAIN
 
-echo "Show ls for directory:"
-echo ll /srv/www
-
 echo "============================================"
 echo "Configure Apache"
 echo "============================================"
@@ -148,12 +145,12 @@ NC='\033[0m' # No Color
 # Cyan         0;36     Light Cyan    1;36
 # Light Gray   0;37     White         1;37
 
-echo -e "${RED}#############################################${NC}"
-echo -e "       ${GREEN}Database Information${NC}"
-echo -e "Database: ${BLUE}$DB_NAME${NC}"
-echo -e "User:     ${BLUE}$DB_USER${NC}"
+echo -e "${RED}################################################${NC}"
+echo -e "${GREEN}Database Information${NC}"
+echo -e "Schema:   ${BLUE}$DB_NAME${NC}"
+echo -e "Username: ${BLUE}$DB_USER${NC}"
 echo -e "Password: ${BLUE}$DB_PASS${NC}"
-echo -e "${RED}#############################################${NC}"
+echo -e "${RED}################################################${NC}"
 
 # *************************************************************
 #                     END NEW TEST BLOCK

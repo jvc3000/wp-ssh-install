@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Output to screen and file. Big performance hit
+exec > >(tee "debug.log") 2>&1
+
 # Domain (DNS) variable
 WEBSITE_DOMAIN="carolinatech.org"
 

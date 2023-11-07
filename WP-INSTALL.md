@@ -4,17 +4,31 @@
 Built from online guide: [Ubuntu Tutorials - Install and configure WordPress](https://ubuntu.com/tutorials/install-and-configure-wordpress)
 
 ## Overview
-### Server build
 
-Build servere from GCP Compute Engine Instance
+### Pre Build Requirements
+Script files and private key staged on the push (jump) linux server
+### Old Build cleanup (for testing only)
+1. In GCP console, change old server to an Ephemeral IP to free up the reserved static IP used by our DNS
+2. Remove old build host key in the push server's .ssh/known_hosts file, so a new host key can be accepted for the new build.
+```
+ssh-keygen -f "/home/vcampbell3/.ssh/known_hosts" -R "carolinatech.org"
+```
 
-Server will be built the GCP admin console from a template. Need to QA, install latest updates and reboot.
+### New GCP VM build
+Server will be built from the GCP admin console using a pre defined Instance Template. Then need to QA, install latest updates, and reboot server.
+1. **VM Build -** Create new Ubuntu 22.04.3 LTS virtual machine from GCP Compute Engine Instance template. Be sure to map Reserved External IP in build template.
+2. **Route DNS -** Update DNS to new build's External IP **OR** map VM to a Reserved Static External IP (used by the old VM).
+3. **Updates -** Check for and apply any updates, then reboot.
 ```
 sudo apt update && sudo apt upgrade -y
 sudo reboot now
 ```
+4. Stage script and config file  
+scp 00-wordpress-install.sh vcampbell3@carolinatech.org:00-wordpress-install.sh  
+
+
 ### Application Install Outline
-Basic outline for software install and configure.
+High level steps to install and configure WordPress in a new server.
 1. Install Dependencies
 2. Download WordPress
 3. Configure Apache

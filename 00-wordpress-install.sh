@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Site Specific veriables
+WEBSITE_DOMAIN="carolinatech.org"
+
 echo "============================================"
 echo "Install Dependencies"
 echo "============================================"
@@ -25,16 +29,6 @@ apt install php -y \
             php-mysql \
             php-xml \
             php-zip
-
-# *************************************************************
-#                     CLEAN TO HERE
-#                  BEGIN NEW TEST BLOCK
-# *************************************************************
-
-###################################
-#   Site Specific veriables
-###################################
-WEBSITE_DOMAIN="carolinatech.org"
 
 
 echo "============================================"
@@ -104,8 +98,12 @@ else
     echo "WARNING: No valid http response for WordPress setup. localhost is down :("
 fi
 
-echo -e "\nSuccess?"
+echo -e "\nSuccess!"
 
+# *************************************************************
+#                     CLEAN TO HERE
+#                  BEGIN NEW TEST BLOCK
+# *************************************************************
 
 
 # *************************************************************

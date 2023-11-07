@@ -102,11 +102,6 @@ fi
 
 echo -e "\nSuccess!"
 
-# *************************************************************
-#                     CLEAN TO HERE
-#                  BEGIN NEW TEST BLOCK
-# *************************************************************
-
 echo "============================================"
 echo "Configure database"
 echo "============================================"
@@ -129,32 +124,6 @@ echo "Setting user privileges..."
 mysql --defaults-extra-file=config.cnf -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
 mysql --defaults-extra-file=config.cnf -e "FLUSH PRIVILEGES;"
 echo "Success :)"
-
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
-
-# You can use these ANSI escape codes:
-# Black        0;30     Dark Gray     1;30
-# Red          0;31     Light Red     1;31
-# Green        0;32     Light Green   1;32
-# Brown/Orange 0;33     Yellow        1;33
-# Blue         0;34     Light Blue    1;34
-# Purple       0;35     Light Purple  1;35
-# Cyan         0;36     Light Cyan    1;36
-# Light Gray   0;37     White         1;37
-
-echo -e "${RED}################################################${NC}"
-echo -e "${GREEN}Database Information${NC}"
-echo -e "Schema:   ${BLUE}$DB_NAME${NC}"
-echo -e "Username: ${BLUE}$DB_USER${NC}"
-echo -e "Password: ${BLUE}$DB_PASS${NC}"
-echo -e "${RED}################################################${NC}"
-
-# *************************************************************
-#                     END NEW TEST BLOCK
-# *************************************************************
 
 #create wp config
 cp /srv/www/carolinatech.org/wp-config-sample.php /srv/www/carolinatech.org/wp-config.php
@@ -180,6 +149,29 @@ chmod 775 /srv/www/carolinatech.org/wp-content/uploads
 echo "SSL generate with certbot"
 apt install certbot python3-certbot-apache -y
 certbot run -n --apache --agree-tos -d $WEBSITE_DOMAIN,www.$WEBSITE_DOMAIN -m admin@$WEBSITE_DOMAIN  --redirect
+
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+# You can use these ANSI escape codes:
+# Black        0;30     Dark Gray     1;30
+# Red          0;31     Light Red     1;31
+# Green        0;32     Light Green   1;32
+# Brown/Orange 0;33     Yellow        1;33
+# Blue         0;34     Light Blue    1;34
+# Purple       0;35     Light Purple  1;35
+# Cyan         0;36     Light Cyan    1;36
+# Light Gray   0;37     White         1;37
+
+echo -e "${RED}################################################${NC}"
+echo -e "${GREEN}Database Information${NC}"
+echo -e "Schema:   ${BLUE}$DB_NAME${NC}"
+echo -e "Username: ${BLUE}$DB_USER${NC}"
+echo -e "Password: ${BLUE}$DB_PASS${NC}"
+echo -e "${RED}################################################${NC}"
+
 echo "========================="
 echo "Installation is complete."
 echo "=========================" 

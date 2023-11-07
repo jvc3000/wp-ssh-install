@@ -5,6 +5,9 @@ Built from online guide: [Ubuntu Tutorials - Install and configure WordPress](ht
 
 ## Overview
 ### Server build
+
+Build servere from GCP Compute Engine Instance
+
 Server will be built the GCP admin console from a template. Need to QA, install latest updates and reboot.
 ```
 sudo apt update && sudo apt upgrade -y

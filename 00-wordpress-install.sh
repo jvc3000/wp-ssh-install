@@ -31,21 +31,10 @@ apt install php -y \
 #                  BEGIN NEW TEST BLOCK
 # *************************************************************
 
-
-
-
-
-
-
-
-
-
-
-
-
-# *************************************************************
-#                     END NEW TEST BLOCK
-# *************************************************************
+###################################
+#   Site Specific veriables
+###################################
+WEBSITE_DOMAIN="carolinatech.org"
 
 
 echo "============================================"
@@ -57,8 +46,17 @@ echo "Create new Dir for web site files"
 mkdir -p /srv/www
 
 # Set Dir ownership to www-data
-echo "Set Dir ownership to www-data"
+echo "Setting /srv/www ownership to www-data"
 chown www-data: /srv/www
+
+echo "Downloading Wordpress files..."
+curl https://wordpress.org/latest.tar.gz | sudo -u www-data tar zx -C /srv/www
+
+echo "Change installation defaul directory 'wordpress' to '$WEBSITE_DOMAIN'"
+mv /srv/www/wordpress /srv/www/$WEBSITE_DOMAIN
+
+echo "Show ls for directory:"
+echo ll /srv/www
 
 echo "============================================"
 echo "Configure Apache"
@@ -67,24 +65,24 @@ echo "============================================"
 # Create Apache site .conf file and inject VirtualHost site configuration
 echo "Create Apache site .conf file and inject VirtualHost site configuration"
 echo "<VirtualHost *:80>
-    ServerName carolinatech.io
-    ServerAlias www.carolinatech.io
-    DocumentRoot /srv/www/carolinatech.io
-    <Directory /srv/www/carolinatech.io>
+    ServerName $WEBSITE_DOMAIN
+    ServerAlias www.$WEBSITE_DOMAIN
+    DocumentRoot /srv/www/$WEBSITE_DOMAIN
+    <Directory /srv/www/$WEBSITE_DOMAIN>
         Options FollowSymLinks
         AllowOverride Limit Options FileInfo
         DirectoryIndex index.php
         Require all granted
     </Directory>
-    <Directory /srv/www/carolinatech.io/wp-content>
+    <Directory /srv/www/$WEBSITE_DOMAIN/wp-content>
         Options FollowSymLinks
         Require all granted
     </Directory>
-</VirtualHost>" > /etc/apache2/sites-available/carolinatech.io.conf
+</VirtualHost>" > /etc/apache2/sites-available/$WEBSITE_DOMAIN.conf
 
 # Enable new site
 echo "Enable new site"
-a2ensite carolinatech.io
+a2ensite $WEBSITE_DOMAIN
 
 # Enable URL rewriting
 echo "Enable URL rewriting"
@@ -99,79 +97,17 @@ echo "Reload to apply changes"
 service apache2 reload
 
 # Validate web server is responding
-if curl -I "http://localhost" 2>&1 | grep -w "200\|301" ; then
-    echo "Success! localhost is up! :)"
+VALID_RESPONSE="setup-config.php"
+if curl -I "http://localhost" 2>&1 | grep -w "$VALID_RESPONSE" ; then
+    echo "Success! Wordpress install is validated. localhost is up. :)"
 else
-    echo "WARNING: localhost is down :("
+    echo "WARNING: No valid http response for WordPress setup. localhost is down :("
 fi
 
+echo -e "\nSuccess?"
 
 
 
-
-
-
-echo "============================================"
-echo "Configure database"
-echo "============================================"
-
-# Database variables
-user="wp_user"
-pass="wordpress123513"
-dbname="wp_db"
-echo "Creating database..."
-mysql -e "CREATE DATABASE $dbname;"
-echo "Creating new user..."
-mysql -e "CREATE USER '$user'@'%' IDENTIFIED BY '$pass';"
-echo "User successfully created!"
-echo "Setting user privileges..."
-mysql -e "GRANT ALL PRIVILEGES ON $dbname.* TO '$user'@'%';"
-mysql -e "FLUSH PRIVILEGES;"
-echo "Success :)"
-
-echo "============================================"
-echo "Install WordPress menggunakan Bash Script   "
-echo "============================================"
-#download wordpress
-curl -O https://wordpress.org/latest.tar.gz
-#unzip wordpress
-tar -zxvf latest.tar.gz
-#Change owner & chmod
-chown -R www-data:www-data wordpress/
-chmod -R 755 wordpress/
-#change dir to wordpress
-cd wordpress
-#create wp config
-cp wp-config-sample.php wp-config.php
-chown -R www-data:www-data wp-config.php
-#set database details with perl find and replace
-perl -pi -e "s/database_name_here/$dbname/g" wp-config.php
-perl -pi -e "s/username_here/$user/g" wp-config.php
-perl -pi -e "s/password_here/$pass/g" wp-config.php
-#set WP salts
-perl -i -pe'
-  BEGIN {
-    @chars = ("a" .. "z", "A" .. "Z", 0 .. 9);
-    push @chars, split //, "!@#$%^&*()-_ []{}<>~\`+=,.;:/?|";
-    sub salt { join "", map $chars[ rand @chars ], 1 .. 64 }
-  }
-  s/put your unique phrase here/salt()/ge
-' wp-config.php
-#create uploads folder and set permissions
-mkdir wp-content/uploads
-chmod 775 wp-content/uploads
-
-
-#enable apache2
-a2ensite wordpress.conf
-a2enmod rewrite
-a2dissite 000-default.conf
-systemctl restart apache2
-echo "Restart service Apache2"
-systemctl restart apache2
-echo "SSL generate with certbot"
-apt install certbot python3-certbot-apache -y
-certbot run -n --apache --agree-tos -d wp.igunawan.com -m admin@igunawan.com  --redirect
-echo "========================="
-echo "Installation is complete."
-echo "=========================" 
+# *************************************************************
+#                     END NEW TEST BLOCK
+# *************************************************************

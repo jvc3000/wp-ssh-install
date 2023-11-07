@@ -9,7 +9,9 @@ Built from online guide: [Ubuntu Tutorials - Install and configure WordPress](ht
 Script files and private key staged on the push (jump) linux server
 ### Old Build cleanup (for testing only)
 1. In GCP console, change old server to an Ephemeral IP to free up the reserved static IP used by our DNS
-2. Remove old build host key in the push server's .ssh/known_hosts file, so a new host key can be accepted for the new build.
+https://console.cloud.google.com/compute/instances?project=carolinatech-io
+2. Delete push server's .ssh/known_hosts file (or entry), so a new host key can be accepted for the DNS name.
+3. Delete desktop .ssh/known_hosts file (or entry). Used by MySQl Wrokbench.
 ```
 ssh-keygen -f "/home/vcampbell3/.ssh/known_hosts" -R "carolinatech.org"
 ```

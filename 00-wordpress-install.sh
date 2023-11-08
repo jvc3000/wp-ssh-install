@@ -17,17 +17,17 @@ echo "============================================"
 
 # Install Apache2 web server
 echo "Install Apache2 web server"
-apt install apache2 -y \
+apt-get install apache2 -y \
             ghostscript \
             libapache2-mod-php
 
 # Install MySQL database
 echo "Install MySQL database"
-apt install mysql-server -y
+apt-get install mysql-server -y
 
 # Install php & modules
 echo "Install php & modules"
-apt install php -y \
+apt-get install php -y \
             php-bcmath \
             php-curl \
             php-imagick \
@@ -150,7 +150,7 @@ chmod 775 /srv/www/carolinatech.org/wp-content/uploads
 
 # Install SSL Cert
 echo "SSL generate with certbot"
-apt install certbot python3-certbot-apache -y
+apt-get install certbot python3-certbot-apache -y
 certbot run -n --apache --agree-tos -d $WEBSITE_DOMAIN,www.$WEBSITE_DOMAIN -m admin@$WEBSITE_DOMAIN  --redirect
 
 RED='\033[0;31m'

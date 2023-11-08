@@ -7,9 +7,24 @@ exec > >(tee "debug.log") 2>&1
 WEBSITE_DOMAIN="carolinatech.org"
 
 # Database variables
-DB_NAME="wp_db01"
-DB_USER="wp_user01"
-DB_PASS="vxe8MXN-yvh6vet.qvk"
+#DB_NAME="wp_db01"
+#DB_USER="wp_user01"
+#DB_PASS="vxe8MXN-yvh6vet.qvk"
+
+PRE_DB="db-"
+PRE_USR="usr-"
+
+# Create random DB name
+DB_NAME="$(PRE_DB)$(tr -dc 'a-z0-9' < /dev/urandom | head -c 8)"
+echo -e "\n    Database name: $DB_NAME"
+
+# Create random DB username
+DB_USER="$(PRE_USR)$(tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 5)"
+echo -e "Database username: $DB_USER"
+
+# Create random DB user password
+DB_PASS=$(tr -dc 'a-zA-Z0-9~`!@#$%^&*_+={[}]|\:;<,>.?/' < /dev/urandom | head -c 15)
+echo -e "Database password: $DB_PASS"
 
 echo "============================================"
 echo "Install Dependencies"
@@ -19,7 +34,9 @@ echo "============================================"
 echo "Install Apache2 web server"
 apt-get install apache2 -y \
             ghostscript \
-            libapache2-mod-php
+            libapache2-mod-php \
+            certbot \
+            python3-certbot-apache -y
 
 # Install MySQL database
 echo "Install MySQL database"
@@ -103,30 +120,23 @@ else
     echo "WARNING: No valid http response for WordPress setup. localhost is down :("
 fi
 
-echo -e "\nSuccess!"
-
 echo "============================================"
 echo "Configure database"
 echo "============================================"
 
-# Error checking that can be used later
-RESULT_VARIABLE="$(mysql --defaults-extra-file=config.cnf -sse "SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '$DB_USER')")"
-
-if [ "$RESULT_VARIABLE" = 1 ]; then
-echo "WARNING: The DB user name $DB_USER already exist in the DB"
-else
-  echo "The DB user name $DB_USER does not exist in the DB"
-fi
-
 echo "Creating database..."
-mysql --defaults-extra-file=config.cnf -e "CREATE DATABASE $DB_NAME;"
+mysql -u root -e "CREATE DATABASE $DB_NAME;"
+
 echo "Creating new user..."
-mysql --defaults-extra-file=config.cnf -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';"
-# echo "User successfully created!"
+mysql -u root -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';"
+
 echo "Setting user privileges..."
-mysql --defaults-extra-file=config.cnf -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
-mysql --defaults-extra-file=config.cnf -e "FLUSH PRIVILEGES;"
-echo "Success :)"
+mysql -u root -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
+mysql -u root -e "FLUSH PRIVILEGES;"
+
+echo "============================================"
+echo "Configure WordPress"
+echo "============================================"
 
 #create wp config
 cp /srv/www/carolinatech.org/wp-config-sample.php /srv/www/carolinatech.org/wp-config.php
@@ -149,9 +159,9 @@ mkdir /srv/www/carolinatech.org/wp-content/uploads
 chmod 775 /srv/www/carolinatech.org/wp-content/uploads
 
 # Install SSL Cert
-echo "SSL generate with certbot"
-apt-get install certbot python3-certbot-apache -y
-certbot run -n --apache --agree-tos -d $WEBSITE_DOMAIN,www.$WEBSITE_DOMAIN -m admin@$WEBSITE_DOMAIN  --redirect
+# echo "SSL generate with certbot"
+#apt-get install certbot python3-certbot-apache -y
+#certbot run -n --apache --agree-tos -d $WEBSITE_DOMAIN,www.$WEBSITE_DOMAIN -m admin@$WEBSITE_DOMAIN  --redirect
 
 RED='\033[0;31m'
 BLUE='\033[0;34m'

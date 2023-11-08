@@ -1,17 +1,6 @@
 #!/bin/bash
 
-# Output to screen and file. Big performance hit
-# exec > >(tee "debug2.log") 2>&1
-
-# Domain (DNS) variable
-WEBSITE_DOMAIN="carolinatech.org"
-
-# Database variables
-#DB_NAME="wp_db01"
-#DB_USER="wp_user01"
-#DB_PASS="vxe8MXN-yvh6vet.qvk"
-
-DB_PRE='db-'
+DB_PRE='db_' # Can not use a "-" in name
 USR_PRE='usr-'
 
 # Create random DB name
@@ -24,27 +13,29 @@ DB_USER=$USR_PRE$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)
 echo -e "Database username: $DB_USER"
 
 # Create random DB user password
-DB_PASS=$(tr -dc 'a-zA-Z0-9~`!@#$%^&*_+={[}]|\:;<,>.?/' < /dev/urandom | head -c 15)
+DB_PASS=$(tr -dc 'a-zA-Z0-9~`!@#$%^&*_+={[}]|:<,>.?/' < /dev/urandom | head -c 15)
 echo -e "Database password: $DB_PASS"
 
 # Database variables
-DB_NAME="db-mrzng8s3"
-#DB_USER="wp_user01"
-#DB_PASS="vxe8MXN-yvh6vet.qvk"
+#DB_NAME="wp_db_mrzng8s"
+#DB_USER="wp-user01"
+DB_PASS='vxe8MXNyvh6vetqvk'
 
 echo "============================================"
 echo "Configure database"
 echo "============================================"
 
 echo "Creating database..."
-mysql -u root -e "CREATE DATABASE $DB_NAME;"
+#mysql -u root -e "CREATE DATABASE ${DB_NAME};"
+#mysql -u root -e 'CREATE DATABASE IF NOT EXISTS '$DB_NAME' CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;'
+mysql -e 'CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8 COLLATE utf8_general_ci'
 
 echo "Creating new user..."
-mysql -u root -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';"
+mysql -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';"
 
 echo "Setting user privileges..."
-mysql -u root -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
-mysql -u root -e "FLUSH PRIVILEGES;"
+mysql -e "GRANT ALL ON '$DB_NAME'.* TO '$DB_USER'@'localhost';"
+mysql -e "FLUSH PRIVILEGES;"
 
 echo "============================================"
 echo "Configure WordPress"

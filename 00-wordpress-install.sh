@@ -23,7 +23,7 @@ DB_USER="$(PRE_USR)$(tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 5)"
 echo -e "Database username: $DB_USER"
 
 # Create random DB user password
-DB_PASS=$(tr -dc 'a-zA-Z0-9~`!@#$%^&*_+={[}]|\:;<,>.?/' < /dev/urandom | head -c 15)
+DB_PASS=$(tr -dc 'a-zA-Z0-9~`!@#$%^&*_+={[}]|\:<,>.?/' < /dev/urandom | head -c 15)
 echo -e "Database password: $DB_PASS"
 
 echo "============================================"

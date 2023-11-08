@@ -113,29 +113,3 @@ service apache2 reload
 ```
 
 ## 4. Configure database
-Start MySQL CLI
-```
-$ sudo mysql -u root
-```
-See a list of users
-```
-mysql> SELECT user,host,plugin from mysql.user;
-```
-Set password for root
-```
-mysql> ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'My9d0gly!';
-```
-Configure the new Wordpress database and user in MySQL
-```
-# Configure the new Wordpress database and user in MySQL
-mysql> CREATE DATABASE carolinatechio;
-mysql> CREATE USER carolinatechio@localhost IDENTIFIED BY 'vxe8MXN-yvh6vet.qvk';
-mysql> GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER ON carolinatechio.* TO carolinatechio@localhost;
-mysql> FLUSH PRIVILEGES;
-mysql> quit;
-```
-
-DB Script
-```
-x
-```

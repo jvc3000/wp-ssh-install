@@ -1,13 +1,15 @@
 #!/bin/bash
 
+PASSWD="MyPassword!"
+
 # Create local user with password
-mysql --defaults-extra-file=config.cnf -e "CREATE USER 'vcampbell3'@'localhost' IDENTIFIED BY 'My9d0gly!';"
+mysql --defaults-extra-file=config.cnf -e "CREATE USER 'vcampbell3'@'localhost' IDENTIFIED BY '$PASSWD';"
 
 # Assign superuser
 mysql --defaults-extra-file=config.cnf -e "GRANT ALL ON *.* TO 'vcampbell3'@'localhost' WITH GRANT OPTION;"
 
 # Create external hosts access user iwth password
-mysql --defaults-extra-file=config.cnf -e "CREATE USER 'vcampbell3'@'%' IDENTIFIED BY 'My9d0gly!';"
+mysql --defaults-extra-file=config.cnf -e "CREATE USER 'vcampbell3'@'%' IDENTIFIED BY '$PASSWD';"
 
 # Assign superuser
 mysql --defaults-extra-file=config.cnf -e "GRANT ALL ON *.* TO 'vcampbell3'@'%' WITH GRANT OPTION;"

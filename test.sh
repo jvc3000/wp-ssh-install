@@ -1,13 +1,5 @@
 #!/bin/bash
 
-#
-# Script to create MySQL db + user
-#
-# @author   Raj KB <magepsycho@gmail.com>
-# @website  http://www.magepsycho.com
-# @version  0.1.0
-
-
 ################################################################################
 # SCRIPT FUNCTIONS
 ################################################################################
@@ -66,23 +58,6 @@ function processArgs()
     done
     [[ -z $DB_NAME ]] && _error "Database name cannot be empty." && exit 1
     [[ $DB_USER ]] || DB_USER=$DB_NAME
-}
-
-function createMysqlDbUser()
-{
-    SQL1="CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
-    SQL2="CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"
-    SQL3="GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';"
-    SQL4="FLUSH PRIVILEGES;"
-
-    if [ -f /root/.my.cnf ]; then
-        $BIN_MYSQL -e "${SQL1}${SQL2}${SQL3}${SQL4}"
-    else
-        # If /root/.my.cnf doesn't exist then it'll ask for root password
-        _arrow "Please enter root user MySQL password!"
-        read rootPassword
-        $BIN_MYSQL -h $DB_HOST -u root -p${rootPassword} -e "${SQL1}${SQL2}${SQL3}${SQL4}"
-    fi
 }
 
 function printSuccessMessage()

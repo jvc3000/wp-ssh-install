@@ -127,20 +127,6 @@ function _checkRootUser()
 
 }
 
-function _printPoweredBy()
-{
-    cat <<"EOF"
-Powered By:
-   __  ___              ___               __
-  /  |/  /__ ____ ____ / _ \___ __ ______/ /  ___
- / /|_/ / _ `/ _ `/ -_) ___(_-</ // / __/ _ \/ _ \
-/_/  /_/\_,_/\_, /\__/_/  /___/\_, /\__/_//_/\___/
-            /___/             /___/
- >> Store: http://www.magepsycho.com
- >> Blog: http://www.blog.magepsycho.com
-################################################################
-EOF
-}
 ################################################################################
 # SCRIPT FUNCTIONS
 ################################################################################
@@ -149,40 +135,41 @@ function generatePassword()
     echo "$(openssl rand -base64 12)"
 }
 
+function generateDBname()
+{
+    PRE_DB="wp_"
+    echo "$PRE_DB$(tr -dc '0-9a-z' < /dev/urandom | head -c 6)"
+}
+
+
 function _printUsage()
 {
     echo -n "$(basename $0) [OPTION]...
-Create MySQL db & user.
 Version $VERSION
     Options:
         -h, --host        MySQL Host
         -d, --database    MySQL Database
         -u, --user        MySQL User
         -p, --pass        MySQL Password (If empty, auto-generated)
-        -q, --help        Display this help and exit
+        -h, --help        Display this help and exit
         -v, --version     Output version information and exit
-    Examples:
-        $(basename $0) --user=testuser
+    Example:
+        $(basename $0) --database=mydbname
 "
- #   _printPoweredBy
     exit 1
 }
 
 function processArgs()
 {
-    echo "Print $@"
     # Parse Arguments
     for arg in "$@"
     do
         case $arg in
             -h=*|--host=*)
-                echo -n -e "DB_HOST is $DB_HOST"
                 DB_HOST="${arg#*=}"
-                echo -n -e "DB_HOST is $DB_HOST"
             ;;
             -d=*|--database=*)
                 DB_NAME="${arg#*=}"
-                echo "DB_NAME is $DB_NAME"
             ;;
             -u=*|--user=*)
                 DB_USER="${arg#*=}"
@@ -193,33 +180,30 @@ function processArgs()
             --debug)
                 DEBUG=1
             ;;
-            -q|--help)
-                echo "Are we here at help?"
-                echo "Print arg: $arg"
+            -h|--help)
                 _printUsage
             ;;
             *)
-                echo "Why are we here?"
                 _printUsage
             ;;
         esac
     done
-#    [[ -z $DB_NAME ]] && _error "Database name cannot be empty." && exit 1
-#    [[ $DB_USER ]] || DB_USER=$DB_NAME
+    [[ -z $DB_NAME ]] && _error "Database name cannot be empty." && exit 1
+    [[ $DB_USER ]] || DB_USER=$DB_NAME
 }
 
 function createMysqlDbUser()
 {
     SQL1="CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
-    SQL2="CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"
-    SQL3="GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';"
+    SQL2="CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
+    SQL3="GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
     SQL4="FLUSH PRIVILEGES;"
 
-#    if [ -f /root/.my.cnf ]; then
+#    if [ -f /etc/mysql/my.cnf ]; then
     if [ -f /etc/mysql/my.cnf ]; then
         $BIN_MYSQL -e "${SQL1}${SQL2}${SQL3}${SQL4}"
     else
-        # If /root/.my.cnf doesn't exist then it'll ask for root password
+        # If /etc/mysql/my.cnf doesn't exist then it'll ask for root password
         _arrow "Please enter root user MySQL password!"
         read rootPassword
         $BIN_MYSQL -h $DB_HOST -u root -p${rootPassword} -e "${SQL1}${SQL2}${SQL3}${SQL4}"
@@ -238,8 +222,6 @@ function printSuccessMessage()
     echo " >> Pass      : ${DB_PASS}"
     echo ""
     echo "################################################################"
-#    _printPoweredBy
-
 }
 
 ################################################################################
@@ -255,13 +237,13 @@ VERSION="0.1.0"
 BIN_MYSQL=$(which mysql)
 
 DB_HOST='localhost'
-DB_NAME=
+DB_NAME=$(generateDBname)
 DB_USER=
 DB_PASS=$(generatePassword)
 
 function main()
 {
-    [[ $# -lt 1 ]] && _printUsage
+#    [[ $# -lt 1 ]] && _printUsage 0
     _success "Processing arguments..."
     processArgs "$@"
     _success "Done!"
@@ -275,7 +257,7 @@ function main()
     exit 0
 }
 
-clear
+# clear
 main "$@"
 
 _debug set +x

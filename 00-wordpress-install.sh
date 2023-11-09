@@ -11,16 +11,16 @@ WEBSITE_DOMAIN="carolinatech.org"
 #DB_USER="wp_user01"
 #DB_PASS="vxe8MXN-yvh6vet.qvk"
 
-PRE_DB="db-"
-PRE_USR="usr-"
+PRE_DB="wp_"
+# PRE_USR="usr"
 
 # Create random DB name
 DB_NAME="$(PRE_DB)$(tr -dc 'a-z0-9' < /dev/urandom | head -c 8)"
 echo -e "\n    Database name: $DB_NAME"
 
 # Create random DB username
-DB_USER="$(PRE_USR)$(tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 5)"
-echo -e "Database username: $DB_USER"
+# DB_USER="$(PRE_USR)$(tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 5)"
+# echo -e "Database username: $DB_USER"
 
 # Create random DB user password
 DB_PASS=$(tr -dc 'a-zA-Z0-9~`!@#$%^&*_+={[}]|\:<,>.?/' < /dev/urandom | head -c 15)

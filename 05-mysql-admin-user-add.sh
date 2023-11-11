@@ -1,21 +1,23 @@
 #!/bin/bash
 
-PASSWD="MyPassword!"
+USERID="adminuser"
+PASSWD="pw62892663"
 
+echo "Show current users:"
+mysql -e "SELECT user,plugin,host FROM mysql.user;"
+
+echo "Adding superuser..."
 # Create local user with password
-mysql --defaults-extra-file=config.cnf -e "CREATE USER 'vcampbell3'@'localhost' IDENTIFIED BY '$PASSWD';"
+mysql -e "CREATE USER '$USERID'@'localhost' IDENTIFIED BY '$PASSWD';"
 
 # Assign superuser
-mysql --defaults-extra-file=config.cnf -e "GRANT ALL ON *.* TO 'vcampbell3'@'localhost' WITH GRANT OPTION;"
-
-# Create external hosts access user iwth password
-mysql --defaults-extra-file=config.cnf -e "CREATE USER 'vcampbell3'@'%' IDENTIFIED BY '$PASSWD';"
-
-# Assign superuser
-mysql --defaults-extra-file=config.cnf -e "GRANT ALL ON *.* TO 'vcampbell3'@'%' WITH GRANT OPTION;"
+mysql -e "GRANT ALL ON *.* TO '$USERID'@'localhost' WITH GRANT OPTION;"
 
 # 6. To double check the privileges given to the new user, run SHOW GRANTS command:
-mysql --defaults-extra-file=config.cnf -e "SHOW GRANTS FOR vcampbell3;"
+# mysql -e "SHOW GRANTS FOR $USERID;"
+
+echo "Show user list after add:"
+mysql -e "SELECT user,plugin,host FROM mysql.user;"
 
 # 7. Finally, when everything is settled, reload all the privileges:
-mysql --defaults-extra-file=config.cnf -e "FLUSH PRIVILEGES;"
+mysql -e "FLUSH PRIVILEGES;"

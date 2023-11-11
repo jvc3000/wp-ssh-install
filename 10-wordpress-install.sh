@@ -262,10 +262,10 @@ function configApache()
 
     # Validate web server is responding
     VALID_RESPONSE="setup-config.php"
-    if curl -I "http://localhost" 2>&1 | grep -w "$VALID_RESPONSE" ; then
-        echo "Success! Wordpress install is validated. localhost is up. :)"
+    if curl -I "http://localhost" 2>&1 | grep -w "$VALID_RESPONSE" &> /dev/null; then
+        echo "Success! Wordpress install is validated."
     else
-        echo "WARNING: No valid http response for WordPress setup. localhost is down :("
+        echo "WARNING: No valid http response for WordPress setup."
     fi
 }
 
@@ -392,7 +392,7 @@ function main()
     _success "Done!"
 
     _success "Installing SSL Certificate..."
-    #setupCert
+    setupCert
     _success "Done!"
 
     printSuccessMessage

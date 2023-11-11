@@ -9,6 +9,7 @@
 
 ################################################################################
 # CORE FUNCTIONS - Do not edit
+# From @author   Raj KB <magepsycho@gmail.com>
 ################################################################################
 #
 # VARIABLES
@@ -141,20 +142,20 @@ function generateDBname()
     echo "$PRE_DB$(tr -dc '0-9a-z' < /dev/urandom | head -c 6)"
 }
 
-
 function _printUsage()
 {
     echo -n "$(basename $0) [OPTION]...
 Version $VERSION
     Options:
-        -h, --host        MySQL Host
-        -d, --database    MySQL Database
-        -u, --user        MySQL User
-        -p, --pass        MySQL Password (If empty, auto-generated)
+        -s, --site        Website Domain  (***REQUIRED***)
+        -h, --host        MySQL Host      (default is localhost)
+        -d, --database    MySQL Database  (If empty, auto-generated)
+        -u, --user        MySQL User      (If empty, auto-generated)
+        -p, --pass        MySQL Password  (If empty, auto-generated)
         -h, --help        Display this help and exit
-        -v, --version     Output version information and exit
+        -v, --version     Output script version information and exit
     Example:
-        $(basename $0) --database=mydbname
+        $(basename $0) --site=mywebsite.com
 "
     exit 1
 }
@@ -165,6 +166,9 @@ function processArgs()
     for arg in "$@"
     do
         case $arg in
+            -s=*|--site=*)
+                WEBSITE_DOMAIN="${arg#*=}"
+            ;;
             -h=*|--host=*)
                 DB_HOST="${arg#*=}"
             ;;
@@ -192,87 +196,6 @@ function processArgs()
     [[ $DB_USER ]] || DB_USER=$DB_NAME
 }
 
-function createMysqlDbUser()
-{
-    SQL1="CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
-    SQL2="CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
-    SQL3="GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
-    SQL4="FLUSH PRIVILEGES;"
-
-#    if [ -f /etc/mysql/my.cnf ]; then
-    if [ -f /etc/mysql/my.cnf ]; then
-        $BIN_MYSQL -e "${SQL1}${SQL2}${SQL3}${SQL4}"
-    else
-        # If /etc/mysql/my.cnf doesn't exist then it'll ask for root password
-        _arrow "Please enter root user MySQL password!"
-        read rootPassword
-        $BIN_MYSQL -h $DB_HOST -u root -p${rootPassword} -e "${SQL1}${SQL2}${SQL3}${SQL4}"
-    fi
-}
-
-function printSuccessMessage()
-{
-    _success "MySQL DB / User creation completed!"
-
-    echo "################################################################"
-    echo ""
-    echo " >> Host      : ${DB_HOST}"
-    echo " >> Database  : ${DB_NAME}"
-    echo " >> User      : ${DB_USER}"
-    echo " >> Pass      : ${DB_PASS}"
-    echo ""
-    echo "################################################################"
-}
-
-################################################################################
-# Main
-################################################################################
-export LC_CTYPE=C
-export LANG=C
-
-DEBUG=0 # 1|0
-_debug set -x
-VERSION="0.1.0"
-BIN_MYSQL=$(which mysql)
-
-WEBSITE_DOMAIN="carolinatech.org"  # Domain (DNS) variable
-DB_HOST='localhost'
-DB_NAME=$(generateDBname)
-DB_USER=
-DB_PASS=$(generatePassword)
-
-function main()
-{
-#    [[ $# -lt 1 ]] && _printUsage 0
-    _success "Processing arguments..."
-    processArgs "$@"
-    _success "Done!"
-
-    _success "Creating MySQL db and user..."
-    createMysqlDbUser
-    _success "Done!"
-
-    printSuccessMessage
-
-    exit 0
-}
-
-# clear
-main "$@"
-
-_debug set +x
-
-
-
-############################################################################################
-#------------------------------------ Code merge ------------------------------------------#
-############################################################################################
-
-echo "============================================"
-echo "Install Dependencies"
-echo "============================================"
-
-# Install Apache2 web server
 function installApache()
 {
     apt-get install apache2 -y \
@@ -282,14 +205,11 @@ function installApache()
             python3-certbot-apache -y
 }
 
-# Install MySQL database
 function installMySQL()
 {
     apt-get install mysql-server -y
 }
 
-
-# Install php & modules
 function installPhp()
 {
     apt-get install php -y \
@@ -304,33 +224,15 @@ function installPhp()
             php-zip
 }
 
-
-echo "============================================"
-echo "Download WordPress"
-echo "============================================"
-
-
-# Download WordPress
 function downloadWordpress()
 {
-    # Create new Dir for web site files
     mkdir -p /srv/www
-    # Set Dir ownership to www-data
     chown www-data: /srv/www
-    # Download latest WordPress
     curl https://wordpress.org/latest.tar.gz | sudo -u www-data tar zx -C /srv/www
-    # Change installation defaul directory 'wordpress' to '$WEBSITE_DOMAIN'"
     mv /srv/www/wordpress /srv/www/$WEBSITE_DOMAIN
 }
 
-
-echo "============================================"
-echo "Configure Apache"
-echo "============================================"
-
-
-
-function setupApache()
+function configApache()
 {
     # Create Apache site .conf file and inject VirtualHost site configuration
     echo "<VirtualHost *:80>
@@ -350,13 +252,13 @@ function setupApache()
     </VirtualHost>" > /etc/apache2/sites-available/$WEBSITE_DOMAIN.conf
 
     # Enable new site
-    a2ensite $WEBSITE_DOMAIN
+    a2ensite $WEBSITE_DOMAIN > /dev/null
     # Enable URL rewriting
-    a2enmod rewrite
+    a2enmod rewrite > /dev/null
     # Disable default site
-    a2dissite 000-default
+    a2dissite 000-default > /dev/null
     # Reload to apply changes
-    service apache2 reload
+    service apache2 reload > /dev/null
 
     # Validate web server is responding
     VALID_RESPONSE="setup-config.php"
@@ -367,18 +269,28 @@ function setupApache()
     fi
 }
 
+function createMysqlDbUser()
+{
+    SQL1="CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
+    SQL2="CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
+    SQL3="GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
+    SQL4="FLUSH PRIVILEGES;"
+    BIN_MYSQL=$(which mysql)
 
+#    if [ -f /etc/mysql/my.cnf ]; then
+    if [ -f /etc/mysql/my.cnf ]; then
+        $BIN_MYSQL -e "${SQL1}${SQL2}${SQL3}${SQL4}"
+    else
+        # If /etc/mysql/my.cnf doesn't exist then it'll ask for root password
+        _arrow "Please enter root user MySQL password!"
+        read rootPassword
+        $BIN_MYSQL -h $DB_HOST -u root -p${rootPassword} -e "${SQL1}${SQL2}${SQL3}${SQL4}"
+    fi
+}
 
-
-echo "============================================"
-echo "Configure WordPress"
-echo "============================================"
-
-
-function setupWordpress()
+function configWordpress()
 {
     #create wp config
-    #N# create var for 
     cp /srv/www/carolinatech.org/wp-config-sample.php /srv/www/carolinatech.org/wp-config.php
     chown -R www-data:www-data /srv/www/carolinatech.org/wp-config.php
     #set database details with perl find and replace
@@ -399,42 +311,95 @@ function setupWordpress()
     chmod 775 /srv/www/carolinatech.org/wp-content/uploads
 }
 
-
-# Install SSL Cert
 function setupCert()
 {
     certbot run -n --apache --agree-tos -d $WEBSITE_DOMAIN,www.$WEBSITE_DOMAIN -m admin@$WEBSITE_DOMAIN  --redirect
 }
 
-
-
-function outputOther()
+function printSuccessMessage()
 {
     RED='\033[0;31m'
     BLUE='\033[0;34m'
     GREEN='\033[0;32m'
     NC='\033[0m' # No Color
 
-    # You can use these ANSI escape codes:
-    # Black        0;30     Dark Gray     1;30
-    # Red          0;31     Light Red     1;31
-    # Green        0;32     Light Green   1;32
-    # Brown/Orange 0;33     Yellow        1;33
-    # Blue         0;34     Light Blue    1;34
-    # Purple       0;35     Light Purple  1;35
-    # Cyan         0;36     Light Cyan    1;36
-    # Light Gray   0;37     White         1;37
+    _success "WordPress installation complete!"
 
-    echo -e "${RED}################################################${NC}"
-    echo -e "${GREEN}Database Information${NC}"
-    echo -e "Schema:   ${BLUE}$DB_NAME${NC}"
-    echo -e "Username: ${BLUE}$DB_USER${NC}"
-    echo -e "Password: ${BLUE}$DB_PASS${NC}"
-    echo -e "${RED}################################################${NC}"
+    echo -e "${RED}###########################################################${NC}"
+    echo -e " ${GREEN}Database Information${NC}"
+    echo -e " Domain:    ${BLUE}$WEBSITE_DOMAIN${NC}"
+    echo -e " DB Host:   ${BLUE}$DB_HOST${NC}"
+    echo -e " Schema:    ${BLUE}$DB_NAME${NC}"
+    echo -e " Username:  ${BLUE}$DB_USER${NC}"
+    echo -e " Password:  ${BLUE}$DB_PASS${NC}"
+    echo -e "${RED}###########################################################${NC}"
+
+    echo "========================="
+    echo "Installation is complete."
+    echo "========================="     
 }
 
+################################################################################
+# Main
+################################################################################
+export LC_CTYPE=C
+export LANG=C
 
+DEBUG=0 # 1|0
+_debug set -x
+VERSION="0.1.0"
 
-echo "========================="
-echo "Installation is complete."
-echo "=========================" 
+WEBSITE_DOMAIN=
+DB_HOST='localhost'
+DB_NAME=$(generateDBname)
+DB_USER=
+DB_PASS=$(generatePassword)
+
+function main()
+{
+    [[ $# -lt 1 ]] && _printUsage 0
+    
+    _success "Processing arguments..."
+    processArgs "$@"
+    _success "Done!"
+
+    _success "Installing Apache..."
+    installApache
+    _success "Done!"
+
+    _success "Installing MySQL..."
+    installMySQL
+    _success "Done!"
+
+    _success "Installing PHP..."
+    installPhp
+    _success "Done!"
+
+    _success "Downloading WordPress..."
+    downloadWordpress
+    _success "Done!"
+
+    _success "Configuring Apache Virtual Host..."
+    configApache
+    _success "Done!"
+
+    _success "Creating MySQL db and user..."
+    createMysqlDbUser
+    _success "Done!"
+
+    _success "Configure WordPress..."
+    configWordpress
+    _success "Done!"
+
+    _success "Installing SSL Certificate..."
+    #setupCert
+    _success "Done!"
+
+    printSuccessMessage
+
+    exit 0
+}
+
+main "$@"
+
+_debug set +x

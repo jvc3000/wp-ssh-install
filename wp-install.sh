@@ -392,6 +392,7 @@ function main()
     _success "Done!"
 
     _success "Installing SSL Certificate..."
+    
     setupCert
     _success "Done!"
 

@@ -139,7 +139,7 @@ function generatePassword()
 function generateDBname()
 {
     PRE_DB="wp_"
-    echo "$PRE_DB$(tr -dc '0-9a-z' < /dev/urandom | head -c 6)"
+    echo "$PRE_DB$(tr -dc 'a-zA-Z0-9~!@#%&*_+=' < /dev/urandom | head -c 6)"
 }
 
 function _printUsage()
@@ -392,7 +392,7 @@ function main()
     _success "Done!"
 
     _success "Installing SSL Certificate..."
-    #setupCert
+    setupCert
     _success "Done!"
 
     printSuccessMessage

@@ -364,15 +364,15 @@ function main()
     _success "Done!"
 
     _success "Installing Apache..."
-    installApache
+    #installApache
     _success "Done!"
 
     _success "Installing MySQL..."
-    installMySQL
+    #installMySQL
     _success "Done!"
 
     _success "Installing PHP..."
-    installPhp
+    #installPhp
     _success "Done!"
 
     _success "Downloading WordPress..."
@@ -380,7 +380,7 @@ function main()
     _success "Done!"
 
     _success "Configuring Apache Virtual Host..."
-    configApache
+    #configApache
     _success "Done!"
 
     _success "Creating MySQL db and user..."

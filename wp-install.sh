@@ -85,52 +85,6 @@ function _safeExit()
 #
 # UTILITY HELPER
 #
-function _seekConfirmation()
-{
-  printf "\n${_bold}$@${_reset}"
-  read -p " (y/n) " -n 1
-  printf "\n"
-}
-
-# Test whether the result of an 'ask' is a confirmation
-function _isConfirmed()
-{
-    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-        return 0
-    fi
-    return 1
-}
-
-
-function _typeExists()
-{
-    if [ $(type -P $1) ]; then
-        return 0
-    fi
-    return 1
-}
-
-function _isOs()
-{
-    if [[ "${OSTYPE}" == $1* ]]; then
-      return 0
-    fi
-    return 1
-}
-
-function _checkRootUser()
-{
-    #if [ "$(id -u)" != "0" ]; then
-    if [ "$(whoami)" != 'root' ]; then
-        echo "You have no permission to run $0 as non-root user. Use sudo"
-        exit 1;
-    fi
-
-}
-
-################################################################################
-# SCRIPT FUNCTIONS
-################################################################################
 function generatePassword()
 {
     echo "$(openssl rand -base64 12)"
@@ -139,8 +93,12 @@ function generatePassword()
 function generateDBname()
 {
     PRE_DB="wp_"
-    echo "$PRE_DB$(tr -dc 'a-zA-Z0-9~!@#%&*_+=' < /dev/urandom | head -c 6)"
+    echo "$PRE_DB$(tr -dc '0-9a-z' < /dev/urandom | head -c 6)"
 }
+
+################################################################################
+# SCRIPT FUNCTIONS
+################################################################################
 
 function _printUsage()
 {

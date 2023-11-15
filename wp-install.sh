@@ -87,7 +87,7 @@ function _safeExit()
 #
 function generatePassword()
 {
-    echo "$(openssl rand -base64 12)"
+    echo "$(tr -dc '0-9A-Za-z' < /dev/urandom | head -c 12)"
 }
 
 function generateDBname()

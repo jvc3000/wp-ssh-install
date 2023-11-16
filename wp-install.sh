@@ -182,12 +182,47 @@ function installPhp()
             php-zip
 }
 
-function downloadWordpress()
+function configMySQL()
+{
+    SQL1="CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
+    SQL2="CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
+    SQL3="GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
+    SQL4="FLUSH PRIVILEGES;"
+    BIN_MYSQL=$(which mysql)
+
+    if [ -f /etc/mysql/my.cnf ]; then
+        $BIN_MYSQL -e "${SQL1}${SQL2}${SQL3}${SQL4}"
+    else
+        # If /etc/mysql/my.cnf doesn't exist then it'll ask for root password
+        _arrow "Please enter root user MySQL password!"
+        read rootPassword
+        $BIN_MYSQL -h $DB_HOST -u root -p${rootPassword} -e "${SQL1}${SQL2}${SQL3}${SQL4}"
+    fi
+}
+
+function configWordpress()
 {
     mkdir -p /srv/www
     chown www-data: /srv/www
     curl https://wordpress.org/latest.tar.gz | sudo -u www-data tar zx -C /srv/www
     mv /srv/www/wordpress /srv/www/$WEBSITE_DOMAIN
+    # Create uploads folder and set permissions
+    install -d -m 0755 -o www-data -g www-data /srv/www/$WEBSITE_DOMAIN/wp-content/uploads
+    #create wp config file from sample
+    cp /srv/www/$WEBSITE_DOMAIN/wp-config-sample.php /srv/www/$WEBSITE_DOMAIN/wp-config.php
+    #set database details with perl find and replace
+    perl -pi -e "s/database_name_here/$DB_NAME/g" /srv/www/$WEBSITE_DOMAIN/wp-config.php
+    perl -pi -e "s/username_here/$DB_USER/g" /srv/www/$WEBSITE_DOMAIN/wp-config.php
+    perl -pi -e "s/password_here/$DB_PASS/g" /srv/www/$WEBSITE_DOMAIN/wp-config.php
+    #set WP salts
+    perl -i -pe'
+    BEGIN {
+        @chars = ("a" .. "z", "A" .. "Z", 0 .. 9);
+        push @chars, split //, "!@#$%^&*()-_ []{}<>~\`+=,.;:/?|";
+        sub salt { join "", map $chars[ rand @chars ], 1 .. 64 }
+    }
+    s/put your unique phrase here/salt()/ge
+    ' /srv/www/$WEBSITE_DOMAIN/wp-config.php
 }
 
 function configApache()
@@ -218,55 +253,13 @@ function configApache()
     # Reload to apply changes
     service apache2 reload > /dev/null
 
-    # Validate web server is responding
-    VALID_RESPONSE="setup-config.php"
+    # Validate web server is responding with WordPress file
+    VALID_RESPONSE="install.php"
     if curl -I "http://localhost" 2>&1 | grep -w "$VALID_RESPONSE" &> /dev/null; then
-        echo "Success! Wordpress install is validated."
+        echo "Success! Wordpress is up."
     else
         echo "WARNING: No valid http response for WordPress setup."
     fi
-}
-
-function createMysqlDbUser()
-{
-    SQL1="CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
-    SQL2="CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
-    SQL3="GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
-    SQL4="FLUSH PRIVILEGES;"
-    BIN_MYSQL=$(which mysql)
-
-#    if [ -f /etc/mysql/my.cnf ]; then
-    if [ -f /etc/mysql/my.cnf ]; then
-        $BIN_MYSQL -e "${SQL1}${SQL2}${SQL3}${SQL4}"
-    else
-        # If /etc/mysql/my.cnf doesn't exist then it'll ask for root password
-        _arrow "Please enter root user MySQL password!"
-        read rootPassword
-        $BIN_MYSQL -h $DB_HOST -u root -p${rootPassword} -e "${SQL1}${SQL2}${SQL3}${SQL4}"
-    fi
-}
-
-function configWordpress()
-{
-    #create wp config
-    cp /srv/www/$WEBSITE_DOMAIN/wp-config-sample.php /srv/www/$WEBSITE_DOMAIN/wp-config.php
-    chown -R www-data:www-data /srv/www/$WEBSITE_DOMAIN/wp-config.php
-    #set database details with perl find and replace
-    perl -pi -e "s/database_name_here/$DB_NAME/g" /srv/www/$WEBSITE_DOMAIN/wp-config.php
-    perl -pi -e "s/username_here/$DB_USER/g" /srv/www/$WEBSITE_DOMAIN/wp-config.php
-    perl -pi -e "s/password_here/$DB_PASS/g" /srv/www/$WEBSITE_DOMAIN/wp-config.php
-    #set WP salts
-    perl -i -pe'
-    BEGIN {
-        @chars = ("a" .. "z", "A" .. "Z", 0 .. 9);
-        push @chars, split //, "!@#$%^&*()-_ []{}<>~\`+=,.;:/?|";
-        sub salt { join "", map $chars[ rand @chars ], 1 .. 64 }
-    }
-    s/put your unique phrase here/salt()/ge
-    ' /srv/www/$WEBSITE_DOMAIN/wp-config.php
-    #create uploads folder and set permissions
-    mkdir /srv/www/$WEBSITE_DOMAIN/wp-content/uploads
-    chmod 775 /srv/www/$WEBSITE_DOMAIN/wp-content/uploads
 }
 
 function setupCert()
@@ -291,7 +284,6 @@ function printSuccessMessage()
     echo -e " Username:  ${BLUE}$DB_USER${NC}"
     echo -e " Password:  ${BLUE}$DB_PASS${NC}"
     echo -e "${RED}###########################################################${NC}"
-
     echo "========================="
     echo "Installation is complete."
     echo "========================="     
@@ -308,7 +300,7 @@ _debug set -x
 VERSION="0.1.0"
 
 WEBSITE_DOMAIN=
-DB_HOST='localhost'
+DB_HOST="localhost"
 DB_NAME=$(generateDBname)
 DB_USER=
 DB_PASS=$(generatePassword)
@@ -333,20 +325,16 @@ function main()
     installPhp
     _success "Done!"
 
-    _success "Downloading WordPress..."
-    downloadWordpress
+    _success "Creating MySQL database, user and password..."
+    configMySQL
+    _success "Done!"
+
+    _success "Download and Configure WordPress..."
+    configWordpress
     _success "Done!"
 
     _success "Configuring Apache Virtual Host..."
     configApache
-    _success "Done!"
-
-    _success "Creating MySQL db and user..."
-    createMysqlDbUser
-    _success "Done!"
-
-    _success "Configure WordPress..."
-    configWordpress
     _success "Done!"
 
     _success "Installing SSL Certificate..."
